@@ -1,0 +1,19 @@
+name: chipseq
+
+channels:
+  - conda-forge
+  - bioconda
+  - default
+dependencies:
+  - snakemake
+  - snakemake-executor-plugin-slurm
+  - ucsc-facount
+  - pip
+  - pip:
+    - MACS2
+  - deeptools
+  - bwa-mem2
+  - samtools
+  - multiqc
+  - trim-galore
+  - seqtk

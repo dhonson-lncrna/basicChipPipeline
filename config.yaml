@@ -1,0 +1,18 @@
+input_dir: "/groups/carnegie_poc/mcfallngai-lab/dhonson/tools/chipseq/fullTest/inputData"
+
+output_dir: "/groups/carnegie_poc/mcfallngai-lab/dhonson/tools/chipseq/fullTest/results"
+
+bwa2_index: "/groups/carnegie_poc/mcfallngai-lab/dhonson/genomes/hg38/bwamem2/hg38"
+
+binsizes: [50, 100]
+
+effective_genome_size: 2805636231
+
+# Effective genome sizes of E. scolopes v2 for different read lengths
+# Calculated using khmer unique-kmers.py 
+# 
+# 50nt  - 3050344950
+# 75nt  - 3157233796
+# 100nt - 3199935799
+# 150nt - 3302373195
+# 200nt - 3366959930
