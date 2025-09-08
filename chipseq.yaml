@@ -8,9 +8,7 @@ dependencies:
   - snakemake
   - snakemake-executor-plugin-slurm
   - ucsc-facount
-  - pip
-  - pip:
-    - MACS2
+  - macs3
   - deeptools
   - bwa-mem2
   - samtools
