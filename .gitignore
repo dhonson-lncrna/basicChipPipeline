@@ -1,0 +1,6 @@
+# Pipeline outputs
+results/
+logsnake/
+snakemake.pid
+snakemake_*
+tmp_*
