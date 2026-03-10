@@ -29,6 +29,7 @@ SAMPLES = set([re.match(pattern,f).group(1) for f in FASTQS])
 # Load genome
 bwa2_index = config.get("bwa2_index")
 effective_genome_size = config.get("effective_genome_size")
+blacklist = config.get("blacklist")
 
 ##############################################################################
 # Generate rules outputs
@@ -78,7 +79,7 @@ BAMFILES = expand(
 # Peak calling
 CHIPS = [i for i in SAMPLES if "input" not in i]
 MACS3 = expand(
-   os.path.join(DIR_OUT, "macs3", "{chip}_peaks.narrowPeak"),
+   os.path.join(DIR_OUT, "macs3", "{chip}_peaks.broadPeak"),
    chip=CHIPS)
 
 # Binning and fold-change
@@ -120,7 +121,18 @@ rule all:
    input:
       FINAL
 
-# put a clean-up rule here at the end once I know what will be left behind
+rule clean:
+   params:
+      dir_align=DIR_ALIGN,
+      dir_trim=TRIMGALORE
+   shell:
+      '''
+      #  Delete all alignment files except filt.sort.bam and filt.sort.bam.bai
+      find {params.dir_align} -type f ! -name "*.filt.sort.bam*" -delete
+
+      # Delete trimmed fastq files
+      rm -r {params.dir_trim}
+      '''
 
 ##############################################################################
 # FASTQC and trimming
@@ -197,19 +209,24 @@ rule sort_markdupes:
       samtools markdup -@ {threads} -s -f {output.metrics} - {output.marked}
       '''
 
-rule filter_sort_bam:
+rule filter_bam:
    input:
        os.path.join(DIR_ALIGN, "{sample}_markdupe.sort.bam")
    output:
       bam=os.path.join(DIR_ALIGN, "{sample}_filt.sort.bam"),
       bai=os.path.join(DIR_ALIGN, "{sample}_filt.sort.bam.bai"),
+   params:
+      tempbam=os.path.join(DIR_ALIGN, "{sample}.temp.bam"),
+      filtered=os.path.join(DIR_ALIGN, "{sample}.mapq.sub10.bam"),
+      blacklist=blacklist
    threads: 16
    resources:
       mem_mb=64000,
       runtime=480
    shell:      
       '''
-      samtools view -b -F 1804 -q 20 -@ {threads} -o {output.bam} {input}
+      samtools view -b -F 1796 -q 0 -@ {threads} -U {params.filtered} -o {params.tempbam} {input}
+      bedtools intersect -v -abam {params.tempbam} -b {params.blacklist} > {output.bam}
       samtools index {output.bam}
       '''
 
@@ -217,34 +234,38 @@ rule filter_sort_bam:
 # Peak calling and binning
 ##############################################################################
 
-# --nomodel is wrong but required for running with sparse test data
-
 rule macs3:
    input:
       control=os.path.join(DIR_ALIGN, "{sample}_input_filt.sort.bam"),
       chip=os.path.join(DIR_ALIGN, "{sample}_{chip}_filt.sort.bam")
    output:
-      os.path.join(DIR_OUT, "macs3", "{sample}_{chip}_peaks.narrowPeak")
+      os.path.join(DIR_OUT, "macs3", "{sample}_{chip}_peaks.broadPeak")
    params:
       name="{sample}_{chip}",
       outdir=os.path.join(DIR_OUT, "macs3"),
-      g=effective_genome_size
+      g=effective_genome_size,
+      min_length=config.get("min_length"),
+      max_gap=config.get("max_gap")
    wildcard_constraints:
       chip="(?!input).*"
    resources:
-      mem_mb=32000,
+      mem_mb=64000,
       runtime=240
    shell:
       '''
       macs3 callpeak \
+         --broad \
+         --bdg \
          -t {input.chip} \
          -c {input.control} \
          -f BAMPE \
          -n {params.name} \
          -g {params.g} \
+         --min-length {params.min_length} \
+         --max-gap {params.max_gap} \
          --outdir {params.outdir} \
          -q 0.01 \
-         --nomodel
+         --keep-dup auto 
       '''
 
 rule bamcoverage:
@@ -267,7 +288,7 @@ rule bamcoverage:
                   -of bigwig \
                   -bs {params.binsize} \
                   -p max
-     '''
+      '''
 
 rule bamcompare:
    input:

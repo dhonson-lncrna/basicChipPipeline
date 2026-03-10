@@ -1,12 +1,16 @@
-input_dir: "/groups/carnegie_poc/mcfallngai-lab/dhonson/tools/chipseq/fullTest/inputData"
+input_dir: "/resnick/groups/carnegie_poc/mcfallngai-lab/dhonson/dataAnalysis/20260118_chipSeqRep4/fqSymLinks/merge"
 
-output_dir: "/groups/carnegie_poc/mcfallngai-lab/dhonson/tools/chipseq/fullTest/results"
+output_dir: "/resnick/groups/carnegie_poc/mcfallngai-lab/dhonson/dataAnalysis/20260118_chipSeqRep4/results"
 
-bwa2_index: "/groups/carnegie_poc/mcfallngai-lab/dhonson/genomes/hg38/bwamem2/hg38"
+bwa2_index: "/resnick/groups/carnegie_poc/mcfallngai-lab/dhonson/genomes/escolopes_v2/bwamem2/escolopes_v2"
 
-binsizes: [50, 100]
+blacklist: "/resnick/groups/carnegie_poc/mcfallngai-lab/dhonson/genomes/escolopes_v2/fastaRename/escolopes_v2simple.N10.blacklist.bed"
 
-effective_genome_size: 2805636231
+binsizes: [100, 1000]
+
+effective_genome_size: 3199935799
+min_length: 500
+max_gap: 200
 
 # Effective genome sizes of E. scolopes v2 for different read lengths
 # Calculated using khmer unique-kmers.py 
